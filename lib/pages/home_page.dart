@@ -438,7 +438,7 @@
           'POST',
 
           Uri.parse(
-            'http://10.140.185.157:8000/predict',
+            'http://10.143.45.176/predict',
           ),
         );
 
