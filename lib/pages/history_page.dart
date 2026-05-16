@@ -63,7 +63,7 @@ class _HistoryPageState extends State<HistoryPage> {
         title: const Text(
           "Riwayat Deteksi",
           style: TextStyle(
-            color: Colors.white,
+            color: Color.fromARGB(255, 0, 0, 0),
             fontWeight: FontWeight.bold,
           ),
         ),

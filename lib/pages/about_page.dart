@@ -3,36 +3,36 @@ import 'package:flutter/material.dart';
 class AboutPage extends StatelessWidget {
   const AboutPage({super.key});
 
+  // =========================
+  // APP COLORS
+  // =========================
+
+  static const Color primaryColor = Color(0xFFFF4B5C);
+  static const Color backgroundColor = Color(0xFF0A0A0A);
+  static const Color cardColor = Color(0xFF1A1A1A);
+
   @override
   Widget build(BuildContext context) {
-
     return Scaffold(
-
-      backgroundColor:
-          const Color(0xFFF8F8F8),
+      backgroundColor: backgroundColor,
 
       appBar: AppBar(
-
-        backgroundColor:
-            const Color(0xFFFF4B5C),
-
+        backgroundColor: primaryColor,
         elevation: 0,
-
         title: const Text(
           "Tentang Aplikasi",
+          style: TextStyle(
+            color: Color.fromARGB(255, 0, 0, 0),
+            fontWeight: FontWeight.bold,
+          ),
         ),
+        centerTitle: true,
       ),
 
       body: SingleChildScrollView(
-
-        padding:
-            const EdgeInsets.all(20),
-
+        padding: const EdgeInsets.all(20),
         child: Column(
-
-          crossAxisAlignment:
-              CrossAxisAlignment.start,
-
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
 
             // =========================
@@ -40,40 +40,24 @@ class AboutPage extends StatelessWidget {
             // =========================
 
             Center(
-
               child: Container(
-
                 width: 140,
-
                 height: 140,
-
-                padding:
-                    const EdgeInsets.all(20),
-
                 decoration: BoxDecoration(
-
-                  color: Colors.white,
-
-                  borderRadius:
-                      BorderRadius.circular(35),
-
+                  color: cardColor,
+                  borderRadius: BorderRadius.circular(35),
+                  border: Border.all(color: Colors.white10, width: 1),
                   boxShadow: [
-
                     BoxShadow(
-
-                      color: Colors.black
-                          .withOpacity(0.05),
-
+                      color: Colors.black.withOpacity(0.3),
                       blurRadius: 15,
-
-                      offset:
-                          const Offset(0, 5),
+                      offset: const Offset(0, 5),
                     ),
                   ],
                 ),
-
-                child: Image.asset(
-                  'assets/images/stroberi_logo.png',
+                child: Padding(
+                  padding: const EdgeInsets.all(20),
+                  child: Image.asset('assets/images/stroberi_logo.png'),
                 ),
               ),
             ),
@@ -85,20 +69,12 @@ class AboutPage extends StatelessWidget {
             // =========================
 
             const Center(
-
               child: Text(
-
-                "Stroberi AI",
-
+                "STROBERI AI",
                 style: TextStyle(
-
                   fontSize: 32,
-
-                  fontWeight:
-                      FontWeight.bold,
-
-                  color:
-                      Color(0xFFFF4B5C),
+                  fontWeight: FontWeight.bold,
+                  color: primaryColor,
                 ),
               ),
             ),
@@ -106,16 +82,11 @@ class AboutPage extends StatelessWidget {
             const SizedBox(height: 10),
 
             const Center(
-
               child: Text(
-
-                "Hybrid CNN & SVM",
-
+                "HYBRID CNN & SVM",
                 style: TextStyle(
-
                   fontSize: 18,
-
-                  color: Colors.grey,
+                  color: Colors.white54,
                 ),
               ),
             ),
@@ -127,79 +98,47 @@ class AboutPage extends StatelessWidget {
             // =========================
 
             Container(
-
               width: double.infinity,
-
-              padding:
-                  const EdgeInsets.all(25),
-
+              padding: const EdgeInsets.all(25),
               decoration: BoxDecoration(
-
-                color: Colors.white,
-
-                borderRadius:
-                    BorderRadius.circular(25),
-
+                color: cardColor,
+                borderRadius: BorderRadius.circular(25),
+                border: Border.all(color: Colors.white10, width: 1),
                 boxShadow: [
-
                   BoxShadow(
-
-                    color: Colors.black
-                        .withOpacity(0.04),
-
+                    color: Colors.black.withOpacity(0.3),
                     blurRadius: 10,
-
-                    offset:
-                        const Offset(0, 5),
+                    offset: const Offset(0, 5),
                   ),
                 ],
               ),
-
-              child: Column(
-
-                crossAxisAlignment:
-                    CrossAxisAlignment.start,
-
-                children: const [
-
+              child: const Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
                   Text(
-
                     "Tentang Aplikasi",
-
                     style: TextStyle(
-
                       fontSize: 22,
-
-                      fontWeight:
-                          FontWeight.bold,
+                      fontWeight: FontWeight.bold,
+                      color: Color.fromARGB(255, 255, 255, 255),
                     ),
                   ),
-
                   SizedBox(height: 20),
-
                   Text(
-
                     "Stroberi AI merupakan aplikasi berbasis Artificial Intelligence yang digunakan untuk mendeteksi tingkat kematangan buah stroberi menggunakan metode Hybrid CNN dan SVM.",
-
                     style: TextStyle(
-
                       fontSize: 16,
-
                       height: 1.7,
+                      color: Colors.white70,
                     ),
                   ),
-
                   SizedBox(height: 20),
-
                   Text(
-
                     "Aplikasi ini membantu proses klasifikasi stroberi menjadi beberapa kategori seperti matang, setengah matang, dan mentah berdasarkan citra digital.",
-
                     style: TextStyle(
-
                       fontSize: 16,
-
                       height: 1.7,
+                      color: Colors.white70,
                     ),
                   ),
                 ],
@@ -213,84 +152,50 @@ class AboutPage extends StatelessWidget {
             // =========================
 
             Container(
-
               width: double.infinity,
-
-              padding:
-                  const EdgeInsets.all(25),
-
+              padding: const EdgeInsets.all(25),
               decoration: BoxDecoration(
-
-                color: Colors.white,
-
-                borderRadius:
-                    BorderRadius.circular(25),
-
+                color: cardColor,
+                borderRadius: BorderRadius.circular(25),
+                border: Border.all(color: Colors.white10, width: 1),
                 boxShadow: [
-
                   BoxShadow(
-
-                    color: Colors.black
-                        .withOpacity(0.04),
-
+                    color: Colors.black.withOpacity(0.3),
                     blurRadius: 10,
-
-                    offset:
-                        const Offset(0, 5),
+                    offset: const Offset(0, 5),
                   ),
                 ],
               ),
-
-              child: Column(
-
-                crossAxisAlignment:
-                    CrossAxisAlignment.start,
-
-                children: const [
-
+              child: const Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
                   Text(
-
                     "Fitur Utama",
-
                     style: TextStyle(
-
                       fontSize: 22,
-
-                      fontWeight:
-                          FontWeight.bold,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
                     ),
                   ),
-
                   SizedBox(height: 20),
-
                   FeatureItem(
                     icon: Icons.camera_alt,
-                    text:
-                        "Deteksi menggunakan kamera",
+                    text: "Deteksi menggunakan kamera",
                   ),
-
                   SizedBox(height: 15),
-
                   FeatureItem(
                     icon: Icons.image,
-                    text:
-                        "Upload gambar dari galeri",
+                    text: "Upload gambar dari galeri",
                   ),
-
                   SizedBox(height: 15),
-
                   FeatureItem(
                     icon: Icons.analytics,
-                    text:
-                        "Analisis AI real-time",
+                    text: "Analisis AI real-time",
                   ),
-
                   SizedBox(height: 15),
-
                   FeatureItem(
                     icon: Icons.history,
-                    text:
-                        "Penyimpanan riwayat prediksi",
+                    text: "Penyimpanan riwayat prediksi",
                   ),
                 ],
               ),
@@ -303,15 +208,10 @@ class AboutPage extends StatelessWidget {
             // =========================
 
             const Center(
-
               child: Text(
-
                 "Developed with Flutter & FastAPI",
-
                 style: TextStyle(
-
-                  color: Colors.grey,
-
+                  color: Colors.white38,
                   fontSize: 14,
                 ),
               ),
@@ -320,15 +220,10 @@ class AboutPage extends StatelessWidget {
             const SizedBox(height: 10),
 
             const Center(
-
               child: Text(
-
                 "Version 1.0.0",
-
                 style: TextStyle(
-
-                  color: Colors.grey,
-
+                  color: Colors.white38,
                   fontSize: 14,
                 ),
               ),
@@ -349,59 +244,36 @@ class AboutPage extends StatelessWidget {
 class FeatureItem extends StatelessWidget {
 
   final IconData icon;
-
   final String text;
 
   const FeatureItem({
-
     super.key,
-
     required this.icon,
-
     required this.text,
   });
 
   @override
   Widget build(BuildContext context) {
-
     return Row(
-
       children: [
-
         Container(
-
-          padding:
-              const EdgeInsets.all(12),
-
+          padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
-
-            color: const Color(
-              0xFFFF4B5C,
-            ).withOpacity(0.1),
-
-            borderRadius:
-                BorderRadius.circular(15),
+            color: const Color(0xFFFF4B5C).withOpacity(0.15),
+            borderRadius: BorderRadius.circular(15),
           ),
-
           child: Icon(
-
             icon,
-
-            color:
-                const Color(0xFFFF4B5C),
+            color: const Color(0xFFFF4B5C),
           ),
         ),
-
         const SizedBox(width: 15),
-
         Expanded(
-
           child: Text(
-
             text,
-
             style: const TextStyle(
               fontSize: 16,
+              color: Colors.white70,
             ),
           ),
         ),

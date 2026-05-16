@@ -42,75 +42,46 @@ class _MainNavigationState
       // =========================
 
       bottomNavigationBar: Container(
-
-        decoration: BoxDecoration(
-
-          color: Colors.white,
-
-          boxShadow: [
-
-            BoxShadow(
-
-              color: Colors.black.withOpacity(0.05),
-
-              blurRadius: 10,
-
-              offset: const Offset(0, -2),
-            ),
-          ],
-        ),
-
-        child: BottomNavigationBar(
-
-          currentIndex: currentIndex,
-
-          onTap: (index) {
-
-            setState(() {
-
-              currentIndex = index;
-            });
-          },
-
-          backgroundColor: Colors.white,
-
-          elevation: 0,
-
-          selectedItemColor: Colors.redAccent,
-
-          unselectedItemColor: Colors.grey,
-
-          selectedFontSize: 14,
-
-          unselectedFontSize: 12,
-
-          type: BottomNavigationBarType.fixed,
-
-          items: const [
-
-            BottomNavigationBarItem(
-
-              icon: Icon(Icons.home_rounded),
-
-              label: "Home",
-            ),
-
-            BottomNavigationBarItem(
-
-              icon: Icon(Icons.history_rounded),
-
-              label: "Riwayat",
-            ),
-
-            BottomNavigationBarItem(
-
-              icon: Icon(Icons.info_rounded),
-
-              label: "Tentang",
-            ),
-          ],
-        ),
+  decoration: BoxDecoration(
+    color: const Color(0xFFFF4B5C),
+    boxShadow: [
+      BoxShadow(
+        color: Colors.black.withOpacity(0.15),
+        blurRadius: 10,
+        offset: const Offset(0, -2),
       ),
+    ],
+  ),
+  child: BottomNavigationBar(
+    currentIndex: currentIndex,
+    onTap: (index) {
+      setState(() {
+        currentIndex = index;
+      });
+    },
+    backgroundColor: const Color(0xFFFF4B5C),
+    elevation: 0,
+    selectedItemColor: const Color.fromARGB(255, 0, 0, 0),
+    unselectedItemColor: Colors.white60,
+    selectedFontSize: 14,
+    unselectedFontSize: 12,
+    type: BottomNavigationBarType.fixed,
+    items: const [
+      BottomNavigationBarItem(
+        icon: Icon(Icons.home_rounded),
+        label: "Home",
+      ),
+      BottomNavigationBarItem(
+        icon: Icon(Icons.history_rounded),
+        label: "Riwayat",
+      ),
+      BottomNavigationBarItem(
+        icon: Icon(Icons.info_rounded),
+        label: "Tentang",
+      ),
+    ],
+  ),
+),
     );
   }
 }

@@ -136,7 +136,7 @@ class _SplashPageState extends State<SplashPage>
                       "Tingkat Kematangan Buah Stroberi",
                       textAlign: TextAlign.center,
                       style: TextStyle(
-                        color: Colors.white,
+                        color: Color.fromARGB(255, 0, 0, 0),
                         fontSize: 38,
                         fontWeight: FontWeight.bold,
                         letterSpacing: 1,
@@ -149,7 +149,7 @@ class _SplashPageState extends State<SplashPage>
                       "Hybrid CNN & SVM",
                       textAlign: TextAlign.center,
                       style: TextStyle(
-                        color: Colors.white70,
+                        color: Colors.black,
                         fontSize: 18,
                       ),
                     ),
