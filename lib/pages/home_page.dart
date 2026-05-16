@@ -1,470 +1,532 @@
-import 'dart:async';
-import 'dart:convert';
-import 'dart:typed_data';
+  import 'dart:async';
+  import 'dart:convert';
+  import 'dart:typed_data';
 
-import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
-import 'package:http/http.dart' as http;
+  import 'package:flutter/material.dart';
+  import 'package:image_picker/image_picker.dart';
+  import 'package:http/http.dart' as http;
 
-import '../models/history_model.dart';
-import '../data/history_data.dart';
-import '../services/history_service.dart';
+  import '../models/history_model.dart';
+  import '../data/history_data.dart';
+  import '../services/history_service.dart';
 
-class HomePage extends StatefulWidget {
-  const HomePage({super.key});
+  class HomePage extends StatefulWidget {
+    const HomePage({super.key});
 
-  @override
-  State<HomePage> createState() => _HomePageState();
-}
+    @override
+    State<HomePage> createState() =>
+        _HomePageState();
+  }
 
-class _HomePageState extends State<HomePage> {
+  class _HomePageState
+      extends State<HomePage> {
 
-  // =========================
-  // APP COLORS
-  // =========================
+    // =========================
+    // APP COLORS
+    // =========================
 
-  static const Color primaryColor =
-      Color(0xFFFF4B5C);
+    static const Color primaryColor =
+        Color(0xFFFF4B5C);
 
-  static const Color secondaryColor =
-      Color(0xFFFF6B6B);
+    static const Color secondaryColor =
+        Color(0xFFFF6B6B);
 
-  static const Color backgroundColor =
-      Color(0xFFF6F6F6);
+    static const Color backgroundColor =
+        Color(0xFF0A0A0A);
 
-  static const Color cardColor =
-      Colors.white;
+    static const Color cardColor =
+        Color(0xFF1A1A1A);
 
-  // =========================
-  // VARIABLES
-  // =========================
+    // =========================
+    // VARIABLES
+    // =========================
 
-  final ImagePicker picker = ImagePicker();
+    final ImagePicker picker =
+        ImagePicker();
 
-  XFile? imageFile;
+    XFile? imageFile;
 
-  Uint8List? imageBytes;
+    Uint8List? imageBytes;
 
-  String result = "-";
+    String result = "-";
 
-  double confidence = 0;
+    double confidence = 0;
 
-  bool isLoading = false;
+    bool isLoading = false;
 
-  bool isRequestRunning = false;
+    bool isRequestRunning = false;
 
-  // =========================
-  // LOADING TEXTS
-  // =========================
+    // =========================
+    // LOADING TEXTS
+    // =========================
 
-  final List<String> loadingTexts = [
+    final List<String> loadingTexts = [
 
-    "AI sedang membaca gambar...",
+      "AI sedang membaca gambar...",
 
-    "Menganalisis tingkat kematangan...",
+      "Menganalisis tingkat kematangan...",
 
-    "Mengekstrak fitur CNN...",
+      "Mengekstrak fitur CNN...",
 
-    "Mengklasifikasi dengan SVM...",
+      "Mengklasifikasi dengan SVM...",
 
-    "Menyelesaikan prediksi...",
-  ];
+      "Menyelesaikan prediksi...",
+    ];
 
-  int loadingIndex = 0;
+    int loadingIndex = 0;
 
-  Timer? loadingTimer;
+    Timer? loadingTimer;
 
-  // =========================
-  // START LOADING
-  // =========================
+    // =========================
+    // START LOADING
+    // =========================
 
-  void startLoadingAnimation() {
+    void startLoadingAnimation() {
 
-    loadingIndex = 0;
+      loadingIndex = 0;
 
-    loadingTimer?.cancel();
+      loadingTimer?.cancel();
 
-    loadingTimer = Timer.periodic(
+      loadingTimer = Timer.periodic(
 
-      const Duration(seconds: 2),
+        const Duration(seconds: 2),
 
-      (timer) {
+        (timer) {
 
-        if (!mounted) return;
+          if (!mounted) return;
+
+          setState(() {
+
+            loadingIndex++;
+
+            if (loadingIndex >=
+                loadingTexts.length) {
+
+              loadingIndex = 0;
+            }
+          });
+        },
+      );
+    }
+
+    // =========================
+    // STOP LOADING
+    // =========================
+
+    void stopLoadingAnimation() {
+
+      loadingTimer?.cancel();
+    }
+
+    // =========================
+    // DISPOSE
+    // =========================
+
+    @override
+    void dispose() {
+
+      loadingTimer?.cancel();
+
+      super.dispose();
+    }
+
+    // =========================
+    // PICK IMAGE
+    // =========================
+
+    Future<void> pickImage(
+      ImageSource source,
+    ) async {
+
+      final pickedFile =
+          await picker.pickImage(
+
+        source: source,
+
+        imageQuality: 85,
+      );
+
+      if (pickedFile != null) {
+
+        final bytes =
+            await pickedFile.readAsBytes();
 
         setState(() {
 
-          loadingIndex++;
+          imageFile = pickedFile;
 
-          if (loadingIndex >=
-              loadingTexts.length) {
+          imageBytes = bytes;
 
-            loadingIndex = 0;
-          }
+          result = "-";
+
+          confidence = 0;
         });
-      },
-    );
-  }
 
-  // =========================
-  // STOP LOADING
-  // =========================
+        await predictImage();
+      }
+    }
 
-  void stopLoadingAnimation() {
+    // =========================
+    // IMAGE PICKER OPTION
+    // =========================
 
-    loadingTimer?.cancel();
-  }
+    void showImagePickerOption() {
 
-  // =========================
-  // DISPOSE
-  // =========================
+      showModalBottomSheet(
 
-  @override
-  void dispose() {
+        context: context,
 
-    loadingTimer?.cancel();
+        backgroundColor:
+            const Color(0xFF1A1A1A),
 
-    super.dispose();
-  }
+        shape:
+            const RoundedRectangleBorder(
 
-  // =========================
-  // PICK IMAGE
-  // =========================
+          borderRadius:
+              BorderRadius.vertical(
 
-  Future<void> pickImage(
-    ImageSource source,
-  ) async {
+            top: Radius.circular(30),
+          ),
+        ),
 
-    final pickedFile =
-        await picker.pickImage(
+        builder: (context) {
 
-      source: source,
+          return Padding(
 
-      imageQuality: 85,
-    );
+            padding:
+                const EdgeInsets.all(25),
 
-    if (pickedFile != null) {
+            child: Column(
 
-      final bytes =
-          await pickedFile.readAsBytes();
+              mainAxisSize:
+                  MainAxisSize.min,
+
+              children: [
+
+                Container(
+
+                  width: 60,
+
+                  height: 6,
+
+                  decoration: BoxDecoration(
+
+                    color:
+                        Colors.grey.shade700,
+
+                    borderRadius:
+                        BorderRadius.circular(20),
+                  ),
+                ),
+
+                const SizedBox(height: 30),
+
+                const Text(
+
+                  "Pilih Gambar",
+
+                  style: TextStyle(
+
+                    color: Colors.white,
+
+                    fontSize: 24,
+
+                    fontWeight:
+                        FontWeight.bold,
+                  ),
+                ),
+
+                const SizedBox(height: 30),
+
+                Row(
+
+                  children: [
+
+                    Expanded(
+
+                      child: GestureDetector(
+
+                        onTap: () {
+
+                          Navigator.pop(
+                            context,
+                          );
+
+                          pickImage(
+                            ImageSource.camera,
+                          );
+                        },
+
+                        child: Container(
+
+                          padding:
+                              const EdgeInsets
+                                  .all(25),
+
+                          decoration:
+                              BoxDecoration(
+
+                            color:
+                                primaryColor
+                                    .withOpacity(
+                                        0.1),
+
+                            borderRadius:
+                                BorderRadius
+                                    .circular(
+                                        25),
+                          ),
+
+                          child: const Column(
+
+                            children: [
+
+                              Icon(
+
+                                Icons
+                                    .camera_alt,
+
+                                size: 50,
+
+                                color:
+                                    primaryColor,
+                              ),
+
+                              SizedBox(
+                                height: 15,
+                              ),
+
+                              Text(
+
+                                "Kamera",
+
+                                style:
+                                    TextStyle(
+
+                                  color:
+                                      Colors
+                                          .white,
+
+                                  fontSize:
+                                      18,
+
+                                  fontWeight:
+                                      FontWeight
+                                          .bold,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+
+                    const SizedBox(width: 20),
+
+                    Expanded(
+
+                      child: GestureDetector(
+
+                        onTap: () {
+
+                          Navigator.pop(
+                            context,
+                          );
+
+                          pickImage(
+                            ImageSource.gallery,
+                          );
+                        },
+
+                        child: Container(
+
+                          padding:
+                              const EdgeInsets
+                                  .all(25),
+
+                          decoration:
+                              BoxDecoration(
+
+                            color:
+                                secondaryColor
+                                    .withOpacity(
+                                        0.1),
+
+                            borderRadius:
+                                BorderRadius
+                                    .circular(
+                                        25),
+                          ),
+
+                          child: const Column(
+
+                            children: [
+
+                              Icon(
+
+                                Icons.image,
+
+                                size: 50,
+
+                                color:
+                                    secondaryColor,
+                              ),
+
+                              SizedBox(
+                                height: 15,
+                              ),
+
+                              Text(
+
+                                "Gallery",
+
+                                style:
+                                    TextStyle(
+
+                                  color:
+                                      Colors
+                                          .white,
+
+                                  fontSize:
+                                      18,
+
+                                  fontWeight:
+                                      FontWeight
+                                          .bold,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+
+                const SizedBox(height: 20),
+              ],
+            ),
+          );
+        },
+      );
+    }
+
+    // =========================
+    // PREDICT IMAGE
+    // =========================
+
+    Future<void> predictImage() async {
+
+      if (imageBytes == null) return;
+
+      if (isRequestRunning) return;
+
+      isRequestRunning = true;
 
       setState(() {
 
-        imageFile = pickedFile;
-
-        imageBytes = bytes;
+        isLoading = true;
       });
 
-      await predictImage();
-    }
-  }
+      startLoadingAnimation();
 
-  // =========================
-  // IMAGE PICKER OPTION
-  // =========================
+      try {
 
-  void showImagePickerOption() {
+        var request =
+            http.MultipartRequest(
 
-    showModalBottomSheet(
+          'POST',
 
-      context: context,
-
-      backgroundColor: Colors.white,
-
-      shape:
-          const RoundedRectangleBorder(
-
-        borderRadius:
-            BorderRadius.vertical(
-
-          top: Radius.circular(30),
-        ),
-      ),
-
-      builder: (context) {
-
-        return Padding(
-
-          padding:
-              const EdgeInsets.all(25),
-
-          child: Column(
-
-            mainAxisSize:
-                MainAxisSize.min,
-
-            children: [
-
-              Container(
-
-                width: 60,
-
-                height: 6,
-
-                decoration: BoxDecoration(
-
-                  color:
-                      Colors.grey.shade300,
-
-                  borderRadius:
-                      BorderRadius.circular(20),
-                ),
-              ),
-
-              const SizedBox(height: 30),
-
-              const Text(
-
-                "Pilih Gambar",
-
-                style: TextStyle(
-
-                  fontSize: 24,
-
-                  fontWeight:
-                      FontWeight.bold,
-                ),
-              ),
-
-              const SizedBox(height: 30),
-
-              Row(
-
-                children: [
-
-                  Expanded(
-
-                    child: GestureDetector(
-
-                      onTap: () {
-
-                        Navigator.pop(context);
-
-                        pickImage(
-                          ImageSource.camera,
-                        );
-                      },
-
-                      child: Container(
-
-                        padding:
-                            const EdgeInsets.all(25),
-
-                        decoration:
-                            BoxDecoration(
-
-                          color:
-                              primaryColor.withOpacity(0.1),
-
-                          borderRadius:
-                              BorderRadius.circular(25),
-                        ),
-
-                        child: const Column(
-
-                          children: [
-
-                            Icon(
-
-                              Icons.camera_alt,
-
-                              size: 50,
-
-                              color: primaryColor,
-                            ),
-
-                            SizedBox(height: 15),
-
-                            Text(
-
-                              "Kamera",
-
-                              style: TextStyle(
-
-                                fontSize: 18,
-
-                                fontWeight:
-                                    FontWeight.bold,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-
-                  const SizedBox(width: 20),
-
-                  Expanded(
-
-                    child: GestureDetector(
-
-                      onTap: () {
-
-                        Navigator.pop(context);
-
-                        pickImage(
-                          ImageSource.gallery,
-                        );
-                      },
-
-                      child: Container(
-
-                        padding:
-                            const EdgeInsets.all(25),
-
-                        decoration:
-                            BoxDecoration(
-
-                          color:
-                              secondaryColor.withOpacity(0.1),
-
-                          borderRadius:
-                              BorderRadius.circular(25),
-                        ),
-
-                        child: const Column(
-
-                          children: [
-
-                            Icon(
-
-                              Icons.image,
-
-                              size: 50,
-
-                              color: secondaryColor,
-                            ),
-
-                            SizedBox(height: 15),
-
-                            Text(
-
-                              "Gallery",
-
-                              style: TextStyle(
-
-                                fontSize: 18,
-
-                                fontWeight:
-                                    FontWeight.bold,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-
-              const SizedBox(height: 20),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
-  // =========================
-  // PREDICT IMAGE
-  // =========================
-
-  Future<void> predictImage() async {
-
-    if (imageBytes == null) return;
-
-    if (isRequestRunning) return;
-
-    isRequestRunning = true;
-
-    setState(() {
-
-      isLoading = true;
-    });
-
-    startLoadingAnimation();
-
-    try {
-
-      var request =
-          http.MultipartRequest(
-
-        'POST',
-
-        Uri.parse(
-          'http://10.143.45.176:8000/predict',
-        ),
-      );
-
-      request.files.add(
-
-        http.MultipartFile.fromBytes(
-
-          'file',
-
-          imageBytes!,
-
-          filename: 'stroberi.jpg',
-        ),
-      );
-
-      var response =
-          await request.send().timeout(
-
-        const Duration(seconds: 15),
-      );
-
-      if (response.statusCode == 200) {
-
-        final responseData =
-            await response.stream
-                .bytesToString();
-
-        final data =
-            json.decode(responseData);
-
-        stopLoadingAnimation();
-
-        setState(() {
-
-          result =
-              data['prediction'];
-
-          confidence =
-              data['confidence']
-                  .toDouble();
-
-          isLoading = false;
-        });
-
-        isRequestRunning = false;
-
-        historyList.insert(
-
-          0,
-
-          HistoryModel(
-
-            result: result,
-
-            confidence:
-                confidence,
-
-            imagePath:
-                imageFile!.path,
-
-            createdAt:
-                DateTime.now(),
-
-            imageBytes: imageBytes,
+          Uri.parse(
+            'http://10.140.185.157:8000/predict',
           ),
         );
 
-        await HistoryService
-            .saveHistory();
+        request.files.add(
 
-      } else {
+          http.MultipartFile.fromBytes(
+
+            'file',
+
+            imageBytes!,
+
+            filename: 'stroberi.jpg',
+          ),
+        );
+
+        var response =
+            await request.send().timeout(
+
+          const Duration(seconds: 15),
+        );
+
+        if (response.statusCode == 200) {
+
+          final responseData =
+              await response.stream
+                  .bytesToString();
+
+          final data =
+              json.decode(responseData);
+
+          stopLoadingAnimation();
+
+          setState(() {
+
+            result = data['prediction'];
+
+            confidence =
+                data['confidence']
+                    .toDouble();
+
+            isLoading = false;
+          });
+
+          isRequestRunning = false;
+
+          historyList.insert(
+
+            0,
+
+            HistoryModel(
+
+              result: result,
+
+              confidence: confidence,
+
+              imagePath: imageFile!.path,
+
+              createdAt: DateTime.now(),
+
+              imageBytes: imageBytes,
+            ),
+          );
+
+          await HistoryService.saveHistory();
+
+        } else {
+
+          stopLoadingAnimation();
+
+          setState(() {
+
+            isLoading = false;
+          });
+
+          isRequestRunning = false;
+
+          ScaffoldMessenger.of(context)
+              .showSnackBar(
+
+            const SnackBar(
+
+              content:
+                  Text("API Error"),
+            ),
+          );
+        }
+
+      } catch (e) {
 
         stopLoadingAnimation();
 
@@ -481,312 +543,501 @@ class _HomePageState extends State<HomePage> {
           const SnackBar(
 
             content: Text(
-              "API Error",
+              "Gagal terhubung ke AI Server",
             ),
+
+            backgroundColor:
+                Colors.red,
           ),
         );
+
+        debugPrint(e.toString());
+      }
+    }
+
+    // =========================
+    // UI
+    // =========================
+
+    @override
+    Widget build(BuildContext context) {
+
+      Color resultColor =
+          Colors.orange;
+
+      if (result == "Matang") {
+
+        resultColor = primaryColor;
+
+      } else if (result ==
+          "Mentah") {
+
+        resultColor = Colors.green;
       }
 
-    } catch (e) {
+      bool isValidStroberi =
+          confidence >= 60 ||
+              result == "-";
 
-      stopLoadingAnimation();
+      return Scaffold(
 
-      setState(() {
+        backgroundColor:
+            backgroundColor,
 
-        isLoading = false;
-      });
+        body: SafeArea(
 
-      isRequestRunning = false;
+          child: SingleChildScrollView(
 
-      ScaffoldMessenger.of(context)
-          .showSnackBar(
+            child: Padding(
 
-        const SnackBar(
+              padding:
+                  const EdgeInsets.all(
+                      20),
 
-          content: Text(
-            "Gagal terhubung ke AI Server",
-          ),
+              child: Column(
 
-          backgroundColor: Colors.red,
-        ),
-      );
+                crossAxisAlignment:
+                    CrossAxisAlignment
+                        .start,
 
-      debugPrint(e.toString());
-    }
-  }
+                children: [
 
-  // =========================
-  // UI
-  // =========================
-
-  @override
-  Widget build(BuildContext context) {
-
-    Color resultColor =
-        Colors.orange;
-
-    if (result == "Matang") {
-
-      resultColor = primaryColor;
-
-    } else if (result == "Mentah") {
-
-      resultColor = Colors.green;
-    }
-
-    return Scaffold(
-
-      backgroundColor:
-          backgroundColor,
-
-      body: SafeArea(
-
-        child: SingleChildScrollView(
-
-          child: Padding(
-
-            padding:
-                const EdgeInsets.all(20),
-
-            child: Column(
-
-              crossAxisAlignment:
-                  CrossAxisAlignment.start,
-
-              children: [
-
-                // HEADER
-
-                Container(
-
-                  width: double.infinity,
-
-                  padding:
-                      const EdgeInsets.all(25),
-
-                  decoration: BoxDecoration(
-
-                    gradient:
-                        const LinearGradient(
-
-                      begin:
-                          Alignment.topLeft,
-
-                      end:
-                          Alignment.bottomRight,
-
-                      colors: [
-
-                        primaryColor,
-
-                        secondaryColor,
-                      ],
-                    ),
-
-                    borderRadius:
-                        BorderRadius.circular(30),
-                  ),
-
-                  child: Column(
-
-                    crossAxisAlignment:
-                        CrossAxisAlignment.start,
-
-                    children: [
-
-                      const Text(
-
-                        "Tingkat Kematangan Buah Stroberi",
-
-                        style: TextStyle(
-
-                          color: Colors.white,
-
-                          fontSize: 30,
-
-                          fontWeight:
-                              FontWeight.bold,
-                        ),
-                      ),
-
-                      const SizedBox(height: 10),
-
-                      const Text(
-
-                        "Deteksi tingkat kematangan stroberi menggunakan Hybrid CNN & SVM.",
-
-                        style: TextStyle(
-
-                          color: Colors.white,
-
-                          fontSize: 16,
-                        ),
-                      ),
-
-                      const SizedBox(height: 25),
-
-                      SizedBox(
-
-                        width: double.infinity,
-
-                        height: 55,
-
-                        child: ElevatedButton(
-
-                          style:
-                              ElevatedButton.styleFrom(
-
-                            backgroundColor:
-                                Colors.white,
-
-                            foregroundColor:
-                                primaryColor,
-
-                            elevation: 0,
-
-                            shape:
-                                RoundedRectangleBorder(
-
-                              borderRadius:
-                                  BorderRadius.circular(18),
-                            ),
-                          ),
-
-                          onPressed:
-                              isLoading
-                                  ? null
-                                  : showImagePickerOption,
-
-                          child: const Text(
-
-                            "Upload Gambar",
-
-                            style: TextStyle(
-
-                              fontSize: 18,
-
-                              fontWeight:
-                                  FontWeight.bold,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-
-                const SizedBox(height: 30),
-
-                // IMAGE PREVIEW
-
-                Container(
-
-                  height: 280,
-
-                  width: double.infinity,
-
-                  decoration: BoxDecoration(
-
-                    color: cardColor,
-
-                    borderRadius:
-                        BorderRadius.circular(30),
-
-                    boxShadow: [
-
-                      BoxShadow(
-
-                        color: Colors.black
-                            .withOpacity(0.03),
-
-                        blurRadius: 10,
-
-                        offset:
-                            const Offset(0, 5),
-                      ),
-                    ],
-                  ),
-
-                  child:
-                      imageBytes == null
-
-                          ? Column(
-
-                              mainAxisAlignment:
-                                  MainAxisAlignment.center,
-
-                              children: const [
-
-                                Icon(
-
-                                  Icons.image,
-
-                                  size: 80,
-
-                                  color: Colors.grey,
-                                ),
-
-                                SizedBox(height: 15),
-
-                                Text(
-
-                                  "Belum ada gambar",
-
-                                  style: TextStyle(
-
-                                    fontSize: 18,
-
-                                    color: Colors.grey,
-                                  ),
-                                ),
-                              ],
-                            )
-
-                          : ClipRRect(
-
-                              borderRadius:
-                                  BorderRadius.circular(30),
-
-                              child: Image.memory(
-
-                                imageBytes!,
-
-                                fit: BoxFit.cover,
-                              ),
-                            ),
-                ),
-
-                const SizedBox(height: 30),
-
-                // LOADING
-
-                if (isLoading)
+                  // HEADER
 
                   Container(
 
-                    width: double.infinity,
+                    width:
+                        double.infinity,
 
                     padding:
-                        const EdgeInsets.all(25),
+                        const EdgeInsets
+                            .all(25),
 
-                    decoration: BoxDecoration(
+                    decoration:
+                        BoxDecoration(
 
-                      color: Colors.white,
+                      gradient:
+                          const LinearGradient(
+
+                        begin:
+                            Alignment
+                                .topLeft,
+
+                        end:
+                            Alignment
+                                .bottomRight,
+
+                        colors: [
+
+                          primaryColor,
+
+                          secondaryColor,
+                        ],
+                      ),
 
                       borderRadius:
-                          BorderRadius.circular(30),
+                          BorderRadius
+                              .circular(
+                                  30),
+                    ),
+
+                    child: Column(
+
+                      crossAxisAlignment:
+                          CrossAxisAlignment
+                              .start,
+
+                      children: [
+
+                        const Text(
+
+                          "Tingkat Kematangan Buah Stroberi",
+
+                          style:
+                              TextStyle(
+
+                            color:
+                                Color.fromARGB(255, 0, 0, 0),
+
+                            fontSize:
+                                30,
+
+                            fontWeight:
+                                FontWeight
+                                    .bold,
+                          ),
+                        ),
+
+                        const SizedBox(
+                            height: 10),
+
+                        const Text(
+  "Deteksi tingkat kematangan stroberi menggunakan Hybrid CNN & SVM.",
+  style: TextStyle(
+    color: Color.fromARGB(255, 0, 0, 0),
+    fontSize: 16,
+  ),
+),
+
+const SizedBox(height: 25), // <-- TAMBAHKAN INI
+
+Container(
+  width: double.infinity,
+  height: 55,
+  decoration: BoxDecoration(
+    borderRadius: BorderRadius.circular(18),
+    boxShadow: [
+      BoxShadow(
+        color: Colors.black.withOpacity(0.4),
+        blurRadius: 20,
+        offset: const Offset(0, 8),
+        spreadRadius: 2,
+      ),
+    ],
+  ),
+
+                          child:
+                              ElevatedButton(
+
+                            style:
+                                ElevatedButton
+                                    .styleFrom(
+
+                              backgroundColor:
+                                       primaryColor,
+
+                              foregroundColor:
+                                  Colors.black,
+
+                              elevation:
+                                  0,
+
+                              shape:
+                                  RoundedRectangleBorder(
+
+                                borderRadius:
+                                    BorderRadius
+                                        .circular(
+                                            18),
+                              ),
+                            ),
+
+                            onPressed:
+                                isLoading
+                                    ? null
+                                    : showImagePickerOption,
+
+                            child:
+                                const Text(
+
+                              "Upload Gambar",
+
+                              style:
+                                  TextStyle(
+
+                                fontSize:
+                                    18,
+
+                                fontWeight:
+                                    FontWeight
+                                        .bold,
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 15),
+                      ],
+                    ),
+                  ),
+
+                  const SizedBox(
+                      height: 30),
+
+                  // IMAGE PREVIEW
+
+                  Container(
+
+                    height: 280,
+
+                    width:
+                        double.infinity,
+
+                    decoration:
+                        BoxDecoration(
+
+                      color:
+                          cardColor,
+
+                      borderRadius:
+                          BorderRadius
+                              .circular(
+                                  30),
 
                       boxShadow: [
 
                         BoxShadow(
 
-                          color: Colors.black
-                              .withOpacity(0.03),
+                          color: Colors
+                              .black
+                              .withOpacity(
+                                  0.15),
 
-                          blurRadius: 10,
+                          blurRadius:
+                              10,
 
                           offset:
-                              const Offset(0, 5),
+                              const Offset(
+                                  0, 5),
+                        ),
+                      ],
+                    ),
+
+                    child:
+                        imageBytes == null
+
+                            ? const Column(
+
+                                mainAxisAlignment:
+                                    MainAxisAlignment
+                                        .center,
+
+                                children: [
+
+                                  Icon(
+
+                                    Icons.image,
+
+                                    size: 80,
+
+                                    color: Colors
+                                        .grey,
+                                  ),
+
+                                  SizedBox(
+                                    height:
+                                        15,
+                                  ),
+
+                                  Text(
+
+                                    "Belum ada gambar",
+
+                                    style:
+                                        TextStyle(
+
+                                      fontSize:
+                                          18,
+
+                                      color:
+                                          Colors
+                                              .white70,
+                                    ),
+                                  ),
+                                ],
+                              )
+
+                            : ClipRRect(
+
+                                borderRadius:
+                                    BorderRadius
+                                        .circular(
+                                            30),
+
+                                child:
+                                    Image.memory(
+
+                                  imageBytes!,
+
+                                  fit: BoxFit
+                                      .cover,
+                                ),
+                              ),
+                  ),
+
+                  const SizedBox(
+                      height: 30),
+
+                  // LOADING
+
+                  if (isLoading)
+
+                    Container(
+
+                      width:
+                          double.infinity,
+
+                      padding:
+                          const EdgeInsets
+                              .all(25),
+
+                      decoration:
+                          BoxDecoration(
+
+                        color:
+                            cardColor,
+
+                        borderRadius:
+                            BorderRadius
+                                .circular(
+                                    30),
+
+                        boxShadow: [
+
+                          BoxShadow(
+
+                            color: Colors
+                                .black
+                                .withOpacity(
+                                    0.15),
+
+                            blurRadius:
+                                10,
+
+                            offset:
+                                const Offset(
+                                    0, 5),
+                          ),
+                        ],
+                      ),
+
+                      child: Column(
+
+                        children: [
+
+                          SizedBox(
+
+                            width: 70,
+
+                            height: 70,
+
+                            child:
+                                CircularProgressIndicator(
+
+                              strokeWidth:
+                                  6,
+
+                              color:
+                                  primaryColor,
+
+                              backgroundColor:
+                                  Colors
+                                      .grey
+                                      .shade800,
+                            ),
+                          ),
+
+                          const SizedBox(
+                              height: 30),
+
+                          Text(
+
+                            loadingTexts[
+                                loadingIndex],
+
+                            textAlign:
+                                TextAlign
+                                    .center,
+
+                            style:
+                                const TextStyle(
+
+                              color:
+                                  Colors
+                                      .white,
+
+                              fontSize:
+                                  18,
+
+                              fontWeight:
+                                  FontWeight
+                                      .w600,
+                            ),
+                          ),
+
+                          const SizedBox(
+                              height: 20),
+
+                          LinearProgressIndicator(
+
+                            minHeight:
+                                10,
+
+                            borderRadius:
+                                BorderRadius
+                                    .circular(
+                                        20),
+
+                            color:
+                                primaryColor,
+
+                            backgroundColor:
+                                Colors
+                                    .grey
+                                    .shade800,
+                          ),
+
+                          const SizedBox(
+                              height: 15),
+
+                          const Text(
+
+                            "Artificial Intelligence sedang bekerja...",
+
+                            style:
+                                TextStyle(
+
+                              color:
+                                  Colors
+                                      .white70,
+
+                              fontSize:
+                                  14,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+
+                  const SizedBox(
+                      height: 30),
+
+                  // RESULT CARD
+
+                  Container(
+
+                    width:
+                        double.infinity,
+
+                    padding:
+                        const EdgeInsets
+                            .all(25),
+
+                    decoration:
+                        BoxDecoration(
+
+                      color:
+                          cardColor,
+
+                      borderRadius:
+                          BorderRadius
+                              .circular(
+                                  30),
+
+                      boxShadow: [
+
+                        BoxShadow(
+
+                          color: Colors
+                              .black
+                              .withOpacity(
+                                  0.15),
+
+                          blurRadius:
+                              10,
+
+                          offset:
+                              const Offset(
+                                  0, 5),
                         ),
                       ],
                     ),
@@ -795,189 +1046,201 @@ class _HomePageState extends State<HomePage> {
 
                       children: [
 
-                        SizedBox(
+                        const Text(
 
-                          width: 70,
+                          "Hasil Prediksi",
 
-                          height: 70,
+                          style:
+                              TextStyle(
 
-                          child:
-                              CircularProgressIndicator(
+                            color:
+                                Colors
+                                    .white,
 
-                            strokeWidth: 6,
+                            fontSize:
+                                24,
 
-                            color: primaryColor,
-
-                            backgroundColor:
-                                Colors.grey.shade200,
+                            fontWeight:
+                                FontWeight
+                                    .bold,
                           ),
                         ),
 
-                        const SizedBox(height: 30),
+                        const SizedBox(
+                            height: 25),
+
+                        if (!isValidStroberi)
+
+                          Container(
+
+                            width:
+                                double.infinity,
+
+                            padding:
+                                const EdgeInsets
+                                    .all(15),
+
+                            decoration:
+                                BoxDecoration(
+
+                              color: Colors
+                                  .orange
+                                  .withOpacity(
+                                      0.1),
+
+                              borderRadius:
+                                  BorderRadius
+                                      .circular(
+                                          15),
+
+                              border:
+                                  Border.all(
+
+                                color: Colors
+                                    .orange,
+
+                                width: 1,
+                              ),
+                            ),
+
+                            child:
+                                const Row(
+
+                              children: [
+
+                                Icon(
+
+                                  Icons
+                                      .warning_amber,
+
+                                  color:
+                                      Colors
+                                          .orange,
+
+                                  size: 30,
+                                ),
+
+                                SizedBox(
+                                    width:
+                                        10),
+
+                                Expanded(
+
+                                  child:
+                                      Text(
+
+                                    "Gambar tidak terdeteksi sebagai stroberi. Gunakan gambar stroberi yang jelas!",
+
+                                    style:
+                                        TextStyle(
+
+                                      color:
+                                          Colors.orange,
+
+                                      fontSize:
+                                          14,
+
+                                      fontWeight:
+                                          FontWeight.w600,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+
+                        if (!isValidStroberi)
+                          const SizedBox(
+                              height: 20),
 
                         Text(
 
-                          loadingTexts[
-                              loadingIndex],
+                          isValidStroberi
+                              ? result
+                              : "Tidak Dikenali",
 
-                          textAlign:
-                              TextAlign.center,
+                          style:
+                              TextStyle(
+
+                            fontSize:
+                                38,
+
+                            fontWeight:
+                                FontWeight
+                                    .bold,
+
+                            color:
+                                isValidStroberi
+                                    ? resultColor
+                                    : Colors.orange,
+                          ),
+                        ),
+
+                        const SizedBox(
+                            height: 25),
+
+                        LinearProgressIndicator(
+
+                          value:
+                              confidence /
+                                  100,
+
+                          minHeight:
+                              15,
+
+                          borderRadius:
+                              BorderRadius
+                                  .circular(
+                                      20),
+
+                          backgroundColor:
+                              Colors.grey
+                                  .shade800,
+
+                          valueColor:
+                              AlwaysStoppedAnimation<
+                                  Color>(
+
+                            isValidStroberi
+                                ? resultColor
+                                : Colors.orange,
+                          ),
+                        ),
+
+                        const SizedBox(
+                            height: 15),
+
+                        Text(
+
+                          "${confidence.toStringAsFixed(2)}% Confidence",
 
                           style:
                               const TextStyle(
 
-                            fontSize: 18,
+                            color:
+                                Colors
+                                    .white,
+
+                            fontSize:
+                                18,
 
                             fontWeight:
-                                FontWeight.w600,
-                          ),
-                        ),
-
-                        const SizedBox(height: 20),
-
-                        LinearProgressIndicator(
-
-                          minHeight: 10,
-
-                          borderRadius:
-                              BorderRadius.circular(20),
-
-                          color: primaryColor,
-
-                          backgroundColor:
-                              Colors.grey.shade200,
-                        ),
-
-                        const SizedBox(height: 15),
-
-                        const Text(
-
-                          "Artificial Intelligence sedang bekerja...",
-
-                          style: TextStyle(
-
-                            color: Colors.grey,
-
-                            fontSize: 14,
+                                FontWeight
+                                    .w600,
                           ),
                         ),
                       ],
                     ),
                   ),
 
-                const SizedBox(height: 30),
-
-                // RESULT CARD
-
-                Container(
-
-                  width: double.infinity,
-
-                  padding:
-                      const EdgeInsets.all(25),
-
-                  decoration: BoxDecoration(
-
-                    color: cardColor,
-
-                    borderRadius:
-                        BorderRadius.circular(30),
-
-                    boxShadow: [
-
-                      BoxShadow(
-
-                        color: Colors.black
-                            .withOpacity(0.03),
-
-                        blurRadius: 10,
-
-                        offset:
-                            const Offset(0, 5),
-                      ),
-                    ],
-                  ),
-
-                  child: Column(
-
-                    children: [
-
-                      const Text(
-
-                        "Hasil Prediksi",
-
-                        style: TextStyle(
-
-                          fontSize: 24,
-
-                          fontWeight:
-                              FontWeight.bold,
-                        ),
-                      ),
-
-                      const SizedBox(height: 25),
-
-                      Text(
-
-                        result,
-
-                        style: TextStyle(
-
-                          fontSize: 38,
-
-                          fontWeight:
-                              FontWeight.bold,
-
-                          color: resultColor,
-                        ),
-                      ),
-
-                      const SizedBox(height: 25),
-
-                      LinearProgressIndicator(
-
-                        value:
-                            confidence / 100,
-
-                        minHeight: 15,
-
-                        borderRadius:
-                            BorderRadius.circular(20),
-
-                        backgroundColor:
-                            Colors.grey.shade300,
-
-                        valueColor:
-                            AlwaysStoppedAnimation<Color>(
-                          resultColor,
-                        ),
-                      ),
-
-                      const SizedBox(height: 15),
-
-                      Text(
-
-                        "${confidence.toStringAsFixed(2)}% Confidence",
-
-                        style: const TextStyle(
-
-                          fontSize: 18,
-
-                          fontWeight:
-                              FontWeight.w600,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-
-                const SizedBox(height: 30),
-              ],
+                  const SizedBox(
+                      height: 30),
+                ],
+              ),
             ),
           ),
         ),
-      ),
-    );
+      );
+    }
   }
-}
 
