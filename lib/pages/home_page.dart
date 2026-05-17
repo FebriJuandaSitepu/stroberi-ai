@@ -370,7 +370,7 @@ class _HomePageState extends State<HomePage> {
     else if (result == "Mentah") resultColor = Colors.green;
     else if (result == "Setengah Matang") resultColor = Colors.orange;
 
-    bool isValidStroberi = confidence >= 60 || result == "-";
+    bool isValidStroberi = confidence >= 60; // ← DIUBAH
     bool hasResult = result != "-" && !isLoading;
 
     return Scaffold(
@@ -547,8 +547,84 @@ class _HomePageState extends State<HomePage> {
                     ),
                   ),
 
-                // RESULT CARD
-                if (hasResult)
+                // =========================
+                // TIDAK TERDETEKSI CARD ← BARU
+                // =========================
+
+                if (hasResult && !isValidStroberi)
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(25),
+                    decoration: BoxDecoration(
+                      color: cardColor,
+                      borderRadius: BorderRadius.circular(30),
+                      border: Border.all(color: Colors.orange, width: 1),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.15),
+                          blurRadius: 10,
+                          offset: const Offset(0, 5),
+                        ),
+                      ],
+                    ),
+                    child: Column(
+                      children: [
+                        const Icon(
+                          Icons.help_outline_rounded,
+                          color: Colors.orange,
+                          size: 70,
+                        ),
+                        const SizedBox(height: 15),
+                        const Text(
+                          "Tidak Terdeteksi",
+                          style: TextStyle(
+                            color: Colors.orange,
+                            fontSize: 26,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+                        const Text(
+                          "Gambar yang diunggah bukan buah stroberi atau kualitas gambar kurang jelas. Silakan coba lagi dengan gambar stroberi yang lebih jelas.",
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            color: Colors.white70,
+                            fontSize: 14,
+                            height: 1.6,
+                          ),
+                        ),
+                        const SizedBox(height: 25),
+                        SizedBox(
+                          width: double.infinity,
+                          height: 55,
+                          child: OutlinedButton.icon(
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: Colors.orange,
+                              side: const BorderSide(color: Colors.orange, width: 1),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(18),
+                              ),
+                            ),
+                            onPressed: deteksiUlang,
+                            icon: const Icon(Icons.refresh),
+                            label: const Text(
+                              "Coba Lagi",
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                // =========================
+                // RESULT CARD ← DIUBAH
+                // =========================
+
+                if (hasResult && isValidStroberi)
                   Container(
                     width: double.infinity,
                     padding: const EdgeInsets.all(25),
@@ -583,34 +659,33 @@ class _HomePageState extends State<HomePage> {
                         Row(
                           children: [
                             Text(
-                              isValidStroberi ? result : "Tidak Dikenali",
+                              result,
                               style: TextStyle(
                                 fontSize: 32,
                                 fontWeight: FontWeight.bold,
-                                color: isValidStroberi ? resultColor : Colors.orange,
+                                color: resultColor,
                               ),
                             ),
                             const SizedBox(width: 10),
-                            if (isValidStroberi)
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 10,
-                                  vertical: 4,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: resultColor.withOpacity(0.15),
-                                  borderRadius: BorderRadius.circular(20),
-                                  border: Border.all(color: resultColor, width: 1),
-                                ),
-                                child: Text(
-                                  getStatusLabel(),
-                                  style: TextStyle(
-                                    color: resultColor,
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.bold,
-                                  ),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 10,
+                                vertical: 4,
+                              ),
+                              decoration: BoxDecoration(
+                                color: resultColor.withOpacity(0.15),
+                                borderRadius: BorderRadius.circular(20),
+                                border: Border.all(color: resultColor, width: 1),
+                              ),
+                              child: Text(
+                                getStatusLabel(),
+                                style: TextStyle(
+                                  color: resultColor,
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.bold,
                                 ),
                               ),
+                            ),
                           ],
                         ),
 
@@ -645,15 +720,13 @@ class _HomePageState extends State<HomePage> {
                           minHeight: 10,
                           borderRadius: BorderRadius.circular(20),
                           backgroundColor: Colors.grey.shade800,
-                          valueColor: AlwaysStoppedAnimation<Color>(
-                            isValidStroberi ? resultColor : Colors.orange,
-                          ),
+                          valueColor: AlwaysStoppedAnimation<Color>(resultColor),
                         ),
 
                         const SizedBox(height: 20),
 
                         // DESKRIPSI
-                        if (isValidStroberi && result != "-")
+                        if (result != "-")
                           Container(
                             width: double.infinity,
                             padding: const EdgeInsets.all(15),
