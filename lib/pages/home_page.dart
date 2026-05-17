@@ -432,15 +432,10 @@
 
       try {
 
-        var request =
-            http.MultipartRequest(
-
-          'POST',
-
-          Uri.parse(
-            'http://10.143.45.176/predict',
-          ),
-        );
+        var request = http.MultipartRequest(
+  'POST',
+  Uri.parse('http://10.143.45.176:8000/predict'), 
+);
 
         request.files.add(
 
