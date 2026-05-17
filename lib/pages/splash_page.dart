@@ -51,32 +51,21 @@ class _SplashPageState extends State<SplashPage>
       ),
     );
 
-    // =========================
-    // FIX: Tunggu Flutter siap
-    // =========================
-
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) {
-        controller.forward();
-      }
+      if (mounted) controller.forward();
     });
+  }
 
-    // =========================
-    // NAVIGATION
-    // =========================
+  // =========================
+  // NAVIGASI
+  // =========================
 
-    Timer(
-      const Duration(seconds: 4),
-      () {
-        if (mounted) {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(
-              builder: (context) => const MainNavigation(),
-            ),
-          );
-        }
-      },
+  void navigateToMain() {
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const MainNavigation(),
+      ),
     );
   }
 
@@ -91,6 +80,7 @@ class _SplashPageState extends State<SplashPage>
     return Scaffold(
       body: Container(
         width: double.infinity,
+        height: double.infinity,
         decoration: const BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topLeft,
@@ -101,70 +91,164 @@ class _SplashPageState extends State<SplashPage>
             ],
           ),
         ),
-        child: Center(
-          child: FadeTransition(
-            opacity: fadeAnimation,
-            child: ScaleTransition(
-              scale: scaleAnimation,
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 30),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
+        child: SafeArea(
+          child: SizedBox(
+            width: double.infinity,
+            height: double.infinity,
+            child: SingleChildScrollView(
+              child: ConstrainedBox(
+                constraints: BoxConstraints(
+                  minHeight: MediaQuery.of(context).size.height -
+                      MediaQuery.of(context).padding.top -
+                      MediaQuery.of(context).padding.bottom,
+                ),
+                child: IntrinsicHeight(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 30),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
 
-                    // =========================
-                    // LOGO (tanpa background putih)
-                    // =========================
+                        // =========================
+                        // LOGO
+                        // =========================
 
-                    SizedBox(
-                      width: 170,
-                      height: 170,
-                      child: Image.asset(
-                        'assets/images/stroberi_logo.png',
-                        fit: BoxFit.contain,
-                      ),
+                        FadeTransition(
+                          opacity: fadeAnimation,
+                          child: ScaleTransition(
+                            scale: scaleAnimation,
+                            child: SizedBox(
+                              width: 170,
+                              height: 170,
+                              child: Image.asset(
+                                'assets/images/stroberi_logo.png',
+                                fit: BoxFit.contain,
+                              ),
+                            ),
+                          ),
+                        ),
+
+                        const SizedBox(height: 40),
+
+                        // =========================
+                        // TITLE
+                        // =========================
+
+                        FadeTransition(
+  opacity: fadeAnimation,
+  child: const Text(
+    "STROBERI AI",
+    textAlign: TextAlign.center,
+    style: TextStyle(
+      color: Colors.white,
+      fontSize: 44,
+      fontWeight: FontWeight.w900,
+      letterSpacing: 3,
+      height: 1.1,
+      shadows: [
+        Shadow(
+          blurRadius: 12,
+          color: Colors.black45,
+          offset: Offset(0, 4),
+        ),
+        Shadow(
+          blurRadius: 20,
+          color: Color.fromARGB(80, 255, 0, 0),
+          offset: Offset(0, 0),
+        ),
+      ],
+    ),
+  ),
+),
+
+                        // =========================
+                        // SUBTITLE
+                        // =========================
+
+                        FadeTransition(
+                          opacity: fadeAnimation,
+                          child: const Text(
+                            "Sistem Deteksi Kematangan Buah",
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              color: Colors.white70,
+                              fontSize: 18,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+
+                        const SizedBox(height: 20),
+
+                        // =========================
+                        // DESKRIPSI
+                        // =========================
+
+                        FadeTransition(
+                          opacity: fadeAnimation,
+                          child: const Text(
+                            "Menggunakan metode Hybrid CNN & SVM untuk mendeteksi tingkat kematangan buah stroberi berbasis citra digital.",
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              color: Colors.white60,
+                              fontSize: 15,
+                              height: 1.6,
+                            ),
+                          ),
+                        ),
+
+                        const SizedBox(height: 60),
+
+                        // =========================
+// TOMBOL MULAI DETEKSI
+// =========================
+
+FadeTransition(
+  opacity: fadeAnimation,
+  child: GestureDetector(
+    onTap: navigateToMain,
+    child: Container(
+      width: double.infinity,
+      height: 60,
+      decoration: BoxDecoration(
+        color: Color(0xFFFF4B5C),
+        borderRadius: BorderRadius.circular(30),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.2),
+            blurRadius: 15,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: const Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(
+            "Mulai Deteksi",
+            style: TextStyle(
+              color:Colors.white70,
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          SizedBox(width: 10),
+          Icon(
+            Icons.arrow_forward,
+            color: Colors.white70,
+            size: 20,
+          ),
+        ],
+      ),
+    ),
+  ),
+),
+
+                        const SizedBox(height: 40),
+                      ],
                     ),
-
-                    const SizedBox(height: 40),
-
-                    // =========================
-                    // TITLE
-                    // =========================
-
-                    const Text(
-                      "Tingkat Kematangan Buah Stroberi",
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        color: Color.fromARGB(255, 0, 0, 0),
-                        fontSize: 38,
-                        fontWeight: FontWeight.bold,
-                        letterSpacing: 1,
-                      ),
-                    ),
-
-                    const SizedBox(height: 15),
-
-                    const Text(
-                      "Hybrid CNN & SVM",
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        color: Colors.black,
-                        fontSize: 18,
-                      ),
-                    ),
-
-                    const SizedBox(height: 60),
-
-                    // =========================
-                    // LOADING
-                    // =========================
-
-                    const CircularProgressIndicator(
-                      color: Colors.white,
-                      strokeWidth: 3,
-                    ),
-                  ],
+                  ),
                 ),
               ),
             ),
