@@ -27,12 +27,16 @@ class _HistoryPageState extends State<HistoryPage> {
   // FILTER HISTORY
   // =========================
 
-  List<HistoryModel> get filteredHistory {
-    if (searchText.isEmpty) return historyList;
-    return historyList.where((item) {
-      return item.result.toLowerCase().contains(searchText.toLowerCase());
-    }).toList();
-  }
+ List<HistoryModel> get filteredHistory {
+  if (searchText.isEmpty) return historyList;
+
+  return historyList.where((item) {
+    return item.result
+        .trim()
+        .toLowerCase()
+        .startsWith(searchText.trim().toLowerCase());
+  }).toList();
+}
 
   // =========================
   // DELETE SINGLE HISTORY
