@@ -309,7 +309,7 @@ class _HomePageState extends State<HomePage> {
     try {
       var request = http.MultipartRequest(
         'POST',
-        Uri.parse('http://10.44.221.176:8000/predict'),
+        Uri.parse('http://10.210.49.176:8000/predict'),
       );
 
       request.files.add(
